@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -170,7 +171,7 @@ namespace Volo.Abp.Domain.Repositories.MemoryDb
             return Task.FromResult(GetQueryable().Where(predicate).SingleOrDefault());
         }
 
-        public override async Task DeleteAsync(
+        public async override Task DeleteAsync(
             Expression<Func<TEntity, bool>> predicate,
             bool autoSave = false,
             CancellationToken cancellationToken = default)
@@ -182,7 +183,7 @@ namespace Volo.Abp.Domain.Repositories.MemoryDb
             }
         }
 
-        public override async Task<TEntity> InsertAsync(
+        public async override Task<TEntity> InsertAsync(
             TEntity entity,
             bool autoSave = false,
             CancellationToken cancellationToken = default)
@@ -194,7 +195,7 @@ namespace Volo.Abp.Domain.Repositories.MemoryDb
             return entity;
         }
 
-        public override async Task<TEntity> UpdateAsync(
+        public async override Task<TEntity> UpdateAsync(
             TEntity entity,
             bool autoSave = false,
             CancellationToken cancellationToken = default)
@@ -218,7 +219,7 @@ namespace Volo.Abp.Domain.Repositories.MemoryDb
             return entity;
         }
 
-        public override async Task DeleteAsync(
+        public async override Task DeleteAsync(
             TEntity entity,
             bool autoSave = false,
             CancellationToken cancellationToken = default)
@@ -308,6 +309,12 @@ namespace Volo.Abp.Domain.Repositories.MemoryDb
         public virtual async Task DeleteAsync(TKey id, bool autoSave = false, CancellationToken cancellationToken = default)
         {
             await DeleteAsync(x => x.Id.Equals(id), autoSave, cancellationToken);
+        }
+
+        public virtual async Task DeleteManyAsync([NotNull] IEnumerable<TKey> ids, bool autoSave = false, CancellationToken cancellationToken = default)
+        {
+            var entities = await AsyncExecuter.ToListAsync(GetQueryable().Where(x => ids.Contains(x.Id)));
+            DeleteManyAsync(entities, autoSave, cancellationToken);
         }
     }
 }

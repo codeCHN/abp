@@ -30,47 +30,29 @@ import { THEME_SHARED_APPEND_CONTENT } from './tokens/append-content.token';
 import { httpErrorConfigFactory, HTTP_ERROR_CONFIG } from './tokens/http-error.token';
 import { DateParserFormatter } from './utils/date-parser-formatter';
 
+const declarationsWithExports = [
+  BreadcrumbComponent,
+  ButtonComponent,
+  ChartComponent,
+  ConfirmationComponent,
+  LoaderBarComponent,
+  LoadingComponent,
+  ModalComponent,
+  TableComponent,
+  TableEmptyMessageComponent,
+  ToastComponent,
+  ToastContainerComponent,
+  SortOrderIconComponent,
+  NgxDatatableDefaultDirective,
+  NgxDatatableListDirective,
+  LoadingDirective,
+  TableSortDirective,
+];
+
 @NgModule({
   imports: [CoreModule, NgxDatatableModule, NgxValidateCoreModule, NgbPaginationModule],
-  declarations: [
-    BreadcrumbComponent,
-    ButtonComponent,
-    ChartComponent,
-    ConfirmationComponent,
-    HttpErrorWrapperComponent,
-    LoaderBarComponent,
-    LoadingComponent,
-    ModalComponent,
-    ModalContainerComponent,
-    TableComponent,
-    TableEmptyMessageComponent,
-    ToastComponent,
-    ToastContainerComponent,
-    SortOrderIconComponent,
-    NgxDatatableDefaultDirective,
-    NgxDatatableListDirective,
-    LoadingDirective,
-    TableSortDirective,
-  ],
-  exports: [
-    NgxDatatableModule,
-    BreadcrumbComponent,
-    ButtonComponent,
-    ChartComponent,
-    ConfirmationComponent,
-    LoaderBarComponent,
-    LoadingComponent,
-    ModalComponent,
-    TableComponent,
-    TableEmptyMessageComponent,
-    ToastComponent,
-    ToastContainerComponent,
-    SortOrderIconComponent,
-    NgxDatatableDefaultDirective,
-    NgxDatatableListDirective,
-    LoadingDirective,
-    TableSortDirective,
-  ],
+  declarations: [...declarationsWithExports, HttpErrorWrapperComponent, ModalContainerComponent],
+  exports: [NgxDatatableModule, ...declarationsWithExports],
   providers: [DatePipe],
   entryComponents: [
     HttpErrorWrapperComponent,
@@ -80,13 +62,23 @@ import { DateParserFormatter } from './utils/date-parser-formatter';
     ConfirmationComponent,
   ],
 })
-export class ThemeSharedModule {
-  constructor(private errorHandler: ErrorHandler) {}
+export class BaseThemeSharedModule {}
 
+@NgModule({
+  imports: [BaseThemeSharedModule],
+  exports: [BaseThemeSharedModule],
+})
+export class ThemeSharedModule {
   static forRoot(options = {} as RootParams): ModuleWithProviders<ThemeSharedModule> {
     return {
       ngModule: ThemeSharedModule,
       providers: [
+        {
+          provide: APP_INITIALIZER,
+          multi: true,
+          deps: [ErrorHandler],
+          useFactory: noop,
+        },
         THEME_SHARED_ROUTE_PROVIDERS,
         {
           provide: APP_INITIALIZER,

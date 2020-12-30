@@ -19,13 +19,20 @@ namespace Volo.Abp.Cli.ProjectBuilding.Building
             pipeline.Steps.Add(new TemplateCodeDeleteStep());
             pipeline.Steps.Add(new SolutionRenameStep());
 
-            if (context.Template.Name == AppProTemplate.TemplateName || 
+            if (context.Template.Name == AppProTemplate.TemplateName ||
                 context.Template.Name == ModuleProTemplate.TemplateName)
             {
                 pipeline.Steps.Add(new LicenseCodeReplaceStep());
             }
 
-            if (context.BuildArgs.UiFramework == UiFramework.Mvc && context.BuildArgs.MobileApp == MobileApp.None)
+            if (context.Template.Name == AppTemplate.TemplateName ||
+                context.Template.Name == AppProTemplate.TemplateName)
+            {
+                pipeline.Steps.Add(new DatabaseManagementSystemChangeStep());
+            }
+
+            if ((context.BuildArgs.UiFramework == UiFramework.Mvc || context.BuildArgs.UiFramework == UiFramework.Blazor)
+                && context.BuildArgs.MobileApp == MobileApp.None)
             {
                 pipeline.Steps.Add(new RemoveRootFolderStep());
             }

@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Volo.Abp.ApiVersioning;
+using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.AspNetCore.Mvc.ApiExploring;
 using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.AspNetCore.Mvc.DataAnnotations;
@@ -34,9 +35,11 @@ using Volo.Abp.Http;
 using Volo.Abp.DynamicProxy;
 using Volo.Abp.GlobalFeatures;
 using Volo.Abp.Http.Modeling;
+using Volo.Abp.Json;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.UI;
+using Volo.Abp.UI.Navigation;
 
 namespace Volo.Abp.AspNetCore.Mvc
 {
@@ -45,7 +48,7 @@ namespace Volo.Abp.AspNetCore.Mvc
         typeof(AbpLocalizationModule),
         typeof(AbpApiVersioningAbstractionsModule),
         typeof(AbpAspNetCoreMvcContractsModule),
-        typeof(AbpUiModule),
+        typeof(AbpUiNavigationModule),
         typeof(AbpGlobalFeaturesModule)
         )]
     public class AbpAspNetCoreMvcModule : AbpModule
@@ -54,6 +57,7 @@ namespace Volo.Abp.AspNetCore.Mvc
         {
             DynamicProxyIgnoreTypes.Add<ControllerBase>();
             DynamicProxyIgnoreTypes.Add<PageModel>();
+            DynamicProxyIgnoreTypes.Add<ViewComponent>();
 
             context.Services.AddConventionalRegistrar(new AbpAspNetCoreMvcConventionalRegistrar());
         }
@@ -94,7 +98,10 @@ namespace Volo.Abp.AspNetCore.Mvc
                 }
             });
 
-            var mvcCoreBuilder = context.Services.AddMvcCore();
+            var mvcCoreBuilder = context.Services.AddMvcCore(options =>
+            {
+                options.Filters.Add(new AbpAutoValidateAntiforgeryTokenAttribute());
+            });
             context.Services.ExecutePreConfiguredActions(mvcCoreBuilder);
 
             var abpMvcDataAnnotationsLocalizationOptions = context.Services
@@ -110,11 +117,6 @@ namespace Volo.Abp.AspNetCore.Mvc
                 );
 
             var mvcBuilder = context.Services.AddMvc()
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.ContractResolver =
-                        new AbpMvcJsonContractResolver(context.Services);
-                })
                 .AddRazorRuntimeCompilation()
                 .AddDataAnnotationsLocalization(options =>
                 {
@@ -134,6 +136,8 @@ namespace Volo.Abp.AspNetCore.Mvc
                     };
                 })
                 .AddViewLocalization(); //TODO: How to configure from the application? Also, consider to move to a UI module since APIs does not care about it.
+
+            mvcCoreBuilder.AddAbpHybridJson();
 
             Configure<MvcRazorRuntimeCompilationOptions>(options =>
             {
